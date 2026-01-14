@@ -48,7 +48,7 @@ def apply_custom_css():
 
 
 def render_header():
-    st.title("🔍 KDF Search Engine")
+    st.title("🔍 Semantic Search Demo")
 
 
 def render_search_bar():

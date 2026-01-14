@@ -44,5 +44,4 @@ streamlit run app.py
 3. Direct Quote: Once a relevant reference is found, the system extracts the exact most relevant sentence or paragraph from the original document.
    
 ## Illustration
-<img width="1742" height="727" alt="image" src="https://github.com/user-attachments/assets/3f8d38b1-9f53-4476-81fa-60e5e805b37d" />
-
+![Description of Image](./images/illustration.png)

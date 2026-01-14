@@ -6,3 +6,5 @@ notes/
 archive/
 .env
 eval/
+.venv
+.devcontainer
