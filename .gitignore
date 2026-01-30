@@ -2,9 +2,9 @@ writing/
 data_raw/
 script/
 PM/
-notes/
 archive/
 .env
 eval/
+eval_utils/
 .venv
 .devcontainer

@@ -74,7 +74,7 @@ class MetricCalculator:
             "chunk_hit_3": 1 if best_ch_rank and best_ch_rank <= 3 else 0,
             "chunk_mrr": (1 / best_ch_rank) if best_ch_rank else 0,
             "max_coverage_found": round(max_coverage, 4),
-            "top_retrieval_distance": retrieved_items[0].score if retrieved_items else None
+            "similarity": retrieved_items[0].score if retrieved_items else None
         }
 
         return {**ds_stats, **ch_stats}
@@ -86,5 +86,5 @@ class MetricCalculator:
         Mainly checks confidence/distance scores.
         """
         return {
-            "top_retrieval_distance": retrieved_items[0].score if retrieved_items else None
+            "similarity": retrieved_items[0].score if retrieved_items else None
         }

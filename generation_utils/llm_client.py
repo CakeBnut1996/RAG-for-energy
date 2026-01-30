@@ -1,8 +1,9 @@
-import os
-from typing import Optional, Type, Any
+import os, json
+from typing import Type, Any
 from dotenv import load_dotenv
 from pydantic import BaseModel
 import streamlit as st
+from generation_utils.schema import Response
 
 # --- IMPORTS FOR PROVIDERS ---
 try:
@@ -43,22 +44,29 @@ class LLMClient:
         print(f"🔌 LLM Client connected: {self.provider}/{self.model_name}")
 
     def _init_client(self):
+        # Helper to fetch key from env first, then streamlit secrets
+        def get_key(env_name, secret_path):
+            return os.getenv(env_name) or st.secrets.get("gkeys", {}).get(secret_path) or st.secrets.get(env_name)
+
         if self.provider == "gemini":
             if not HAS_GEMINI: raise ImportError("Run `pip install google-genai`")
-            api_key = os.getenv("GEMINI_API_KEY") or st.secrets.get("gkeys", {}).get("gemini")
+            api_key = get_key("GEMINI_API_KEY", "gemini")
             self.client = genai.Client(api_key=api_key)
 
         elif self.provider == "openai":
             if not HAS_OPENAI: raise ImportError("Run `pip install openai`")
-            self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            api_key = get_key("OPENAI_API_KEY", "openai")
+            self.client = OpenAI(api_key=api_key)
 
         elif self.provider == "anthropic":
             if not HAS_ANTHROPIC: raise ImportError("Run `pip install anthropic`")
-            self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+            api_key = get_key("ANTHROPIC_API_KEY", "anthropic")
+            self.client = anthropic.Anthropic(api_key=api_key)
 
         elif self.provider == "groq":
             if not HAS_GROQ: raise ImportError("Run `pip install groq`")
-            self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+            api_key = get_key("GROQ_API_KEY", "groq")
+            self.client = Groq(api_key=api_key)
 
         else:
             raise ValueError(f"Unknown provider: {self.provider}")
@@ -104,7 +112,7 @@ class LLMClient:
             return f"Error: {e}"
 
     def generate_structured(self, prompt: str, schema_model: Type[BaseModel]) -> Any:
-        """Structured output (Only reliable on Gemini/OpenAI currently)."""
+        """Structured output """
         try:
             # --- GEMINI STRUCTURED ---
             if self.provider == "gemini":
@@ -127,8 +135,29 @@ class LLMClient:
                 )
                 return completion.choices[0].message.parsed
 
+
+            elif self.provider == "groq":
+                # https://console.groq.com/docs/structured-outputs
+                messages = [
+                    {"role": "system", "content": "You are a helpful assistant that outputs JSON."},
+                    {"role": "user", "content": prompt}
+                ]
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    response_format={
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": "Response",
+                            "schema": Response.model_json_schema()
+                        }
+                    }
+                )
+                response_formatted = Response.model_validate(json.loads(response.choices[0].message.content))
+                return response_formatted
+
             else:
-                raise NotImplementedError("Structured output only supported for Gemini and OpenAI.")
+                raise NotImplementedError("Structured output only supported for Gemini, Groq, and OpenAI.")
 
         except Exception as e:
             print(f"⚠️ Structured Generation Error: {e}")

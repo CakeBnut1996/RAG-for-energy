@@ -4,7 +4,7 @@ import yaml
 # --- Standard Imports (No Reloading) ---
 from retrieval_utils.retriever import retrieve_data, rank_datasets
 from generation_utils.generator import StudentGenerator
-from generation_utils.schema import KDFResponse
+from generation_utils.schema import Response
 from display_utils.ui_components import (
     apply_custom_css,
     render_header,
@@ -81,7 +81,7 @@ if search_btn and query_text:
             answer_object = student.generate(
                 query=query_text,
                 context=context_str,
-                schema=KDFResponse
+                schema=Response
             )
 
             # --- Display Results ---

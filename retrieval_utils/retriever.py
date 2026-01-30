@@ -16,6 +16,7 @@ _global_cache = {
 
 class RetrievalResult(BaseModel):
     score: float
+    rank: float
     chunk_text: str
     dataset_id: str
     metadata: Dict[str, Any]
@@ -79,7 +80,7 @@ def retrieve_data(
     # 3. Broad Search (Find unique sources)
     initial_results = collection.query(
         query_embeddings=query_emb,
-        n_results=num_docs * 5,
+        n_results=num_docs * chunks_per_doc * 2,
         include=["documents", "metadatas", "embeddings", "distances"]
     )
 
@@ -95,6 +96,7 @@ def retrieve_data(
 
     # 4. Targeted Search (Fetch chunks per specific source)
     parsed_results = []
+    global_rank = 1
     for ds_id in unique_datasets:
         doc_results = collection.query(
             query_embeddings=query_emb,
@@ -111,11 +113,12 @@ def retrieve_data(
 
                 parsed_results.append(RetrievalResult(
                     score=sim_score,
+                    rank=global_rank,
                     chunk_text=doc_results["documents"][0][i],
                     dataset_id=ds_id,
                     metadata=doc_results["metadatas"][0][i]
                 ))
-
+                global_rank += 1
     return parsed_results
 
 

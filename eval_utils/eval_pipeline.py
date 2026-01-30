@@ -50,27 +50,6 @@ def run_retrieval_step_positive(
     }
 
 
-def run_generation_step_positive(
-        query: str,
-        context: str,
-        student_generator,
-        judge_model
-) -> dict:
-    """
-    Step 2 (Positive): Generate answer and Judge Faithfulness.
-    """
-    # 1. Generate Answer
-    gen_answer = student_generator.generate(query, context)
-
-    # 2. AI Judge Evaluation
-    faith_res = judge_model.evaluate_faithfulness(query, context, gen_answer)
-
-    return {
-        "gen_answer": gen_answer,
-        "faithfulness": faith_res.score,
-        "faithfulness_reason": faith_res.reasoning
-    }
-
 
 def run_retrieval_step_negative(
         hn_pair: dict,
@@ -108,6 +87,29 @@ def run_retrieval_step_negative(
         "retrieved_text_snippet": top_text,
         "latency": latency,
         **neg_metrics
+    }
+
+
+
+def run_generation_step_positive(
+        query: str,
+        context: str,
+        student_generator,
+        judge_model
+) -> dict:
+    """
+    Step 2 (Positive): Generate answer and Judge Faithfulness.
+    """
+    # 1. Generate Answer
+    gen_answer = student_generator.generate(query, context)
+
+    # 2. AI Judge Evaluation
+    faith_res = judge_model.evaluate_faithfulness(query, context, gen_answer)
+
+    return {
+        "gen_answer": gen_answer,
+        "faithfulness": faith_res.score,
+        "faithfulness_reason": faith_res.reasoning
     }
 
 
